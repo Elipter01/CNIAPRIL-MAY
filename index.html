@@ -1019,8 +1019,8 @@ function fmtNum(n) { return Number(n||0).toLocaleString('en-IN'); }
 // SUPABASE CONFIG — Replace with your project credentials
 // Get these from: supabase.com → Project → Settings → API
 // ═══════════════════════════════════════════════════════════
-const SUPABASE_URL  = 'https://adbkgmhdjchdmqqaycyd.supabase.co';
-const SUPABASE_ANON = 'sb_publishable_4rTAITZJdRQHg5h_rE3f6w_af62fFcL';
+const SUPABASE_URL  = 'https://ndcqchjddimhmohdrqae.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_Uy_4Uge0UpzQE2U8LI2h5A_ESa-sicQ';
 
 // ── Low-level Supabase REST helper ──────────────────────────
 async function sb(table, method, body, query) {
@@ -1146,10 +1146,15 @@ const SB = {
       if (filters.Profit_Status !== undefined)   query += '&profit_status=eq.' + (filters.Profit_Status==='true'||filters.Profit_Status===true?'true':'false');
     }
     // Get total count
-    const countRes = await fetch(SUPABASE_URL + '/rest/v1/so_master' + (query.split('&limit=')[0] || '?') + '&select=count', {
-      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON, 'Prefer': 'count=exact', 'Range': '0-0' }
-    });
-    const total = parseInt(countRes.headers.get('content-range')?.split('/')[1] || '0');
+    const countQuery = (query.split('&limit=')[0] || '?');
+    let total = 0;
+    try {
+      const countRes = await fetch(SUPABASE_URL + '/rest/v1/so_master' + countQuery, {
+        method: 'HEAD',
+        headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON, 'Prefer': 'count=exact' }
+      });
+      total = parseInt(countRes.headers.get('content-range')?.split('/')[1] || '0');
+    } catch(e) { total = 0; }
     const rows = await sb('so_master', 'GET', null, query);
     return { data: rows.map(r => ({ ...r, SO_ID: r.id, SO_Number: r.so_number, Party_ID: r.party_id, From_ID: r.from_id, To_ID: r.to_id, MT: r.mt, Rate_Given: r.rate_given, Rate_Received: r.rate_received, Total_Margin: r.total_margin, Converted: r.converted, Status: r.status, Remarks: r.remarks, Allocated: r.allocated, Documentation_Status: r.documentation_status, MF_Status: r.mf_status, Unloading_Status: r.unloading_status, Profit_Status: r.profit_status, Created_At: r.created_at })), total, page };
   },
@@ -1219,10 +1224,14 @@ const SB = {
   },
   async getTripData(page) {
     page = page || 1;
-    const countRes = await fetch(SUPABASE_URL + '/rest/v1/trip_dispatch_master?select=count', {
-      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON, 'Prefer': 'count=exact', 'Range': '0-0' }
-    });
-    const total = parseInt(countRes.headers.get('content-range')?.split('/')[1] || '0');
+    let total = 0;
+    try {
+      const cr = await fetch(SUPABASE_URL + '/rest/v1/trip_dispatch_master', {
+        method: 'HEAD',
+        headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON, 'Prefer': 'count=exact' }
+      });
+      total = parseInt(cr.headers.get('content-range')?.split('/')[1] || '0');
+    } catch(e) {}
     const rows = await sb('trip_dispatch_master', 'GET', null, '?order=id.desc&limit=25&offset='+((page-1)*25));
     return { data: rows.map(r => ({ ...r, SO_Number: r.so_number, Lorry_No: r.lorry_no, Trip_Status: r.trip_status })), total, page };
   },
@@ -1239,10 +1248,14 @@ const SB = {
   },
   async getDispatchData(page) {
     page = page || 1;
-    const countRes = await fetch(SUPABASE_URL + '/rest/v1/trip_dispatch_master?dispatch_status=eq.DISPATCHED&select=count', {
-      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON, 'Prefer': 'count=exact', 'Range': '0-0' }
-    });
-    const total = parseInt(countRes.headers.get('content-range')?.split('/')[1] || '0');
+    let total = 0;
+    try {
+      const cr = await fetch(SUPABASE_URL + '/rest/v1/trip_dispatch_master?dispatch_status=eq.DISPATCHED', {
+        method: 'HEAD',
+        headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON, 'Prefer': 'count=exact' }
+      });
+      total = parseInt(cr.headers.get('content-range')?.split('/')[1] || '0');
+    } catch(e) {}
     const rows = await sb('trip_dispatch_master', 'GET', null, '?dispatch_status=eq.DISPATCHED&order=id.desc&limit=25&offset='+((page-1)*25));
     return { data: rows.map(r => ({ ...r, SO_Number: r.so_number, Lorry_No: r.lorry_no, GC_No: r.gc_no, Eway_Bill_No: r.eway_bill_no, Final_MT: r.final_mt, PKGS: r.pkgs, Items: r.items })), total, page };
   },
@@ -1265,10 +1278,14 @@ const SB = {
   },
   async getMFData(page) {
     page = page || 1;
-    const countRes = await fetch(SUPABASE_URL + '/rest/v1/mf_master?select=count', {
-      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON, 'Prefer': 'count=exact', 'Range': '0-0' }
-    });
-    const total = parseInt(countRes.headers.get('content-range')?.split('/')[1] || '0');
+    let total = 0;
+    try {
+      const cr = await fetch(SUPABASE_URL + '/rest/v1/mf_master', {
+        method: 'HEAD',
+        headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON, 'Prefer': 'count=exact' }
+      });
+      total = parseInt(cr.headers.get('content-range')?.split('/')[1] || '0');
+    } catch(e) {}
     const rows = await sb('mf_master', 'GET', null, '?order=id.desc&limit=25&offset='+((page-1)*25));
     return {
       data: rows.map(r => ({
@@ -2423,7 +2440,7 @@ async function loadSOTable(page) {
 
     const result  = (raw && typeof raw === 'object') ? raw : {};
     const data    = Array.isArray(result.data) ? result.data : [];
-    const total   = typeof result.total === 'number' ? result.total : data.length;
+    const total   = (typeof result.total === 'number' && result.total > 0) ? result.total : Math.max(data.length, (page - 1) * 25 + data.length);
     const totalPages = Math.max(1, Math.ceil(total / 25));
 
     const convBadge = v => {
@@ -3042,7 +3059,7 @@ async function loadDispatchTable(page) {
   const result = await call('getDispatchData', page);
   const {data, total} = result || {data:[], total:0};
   const rows = (data||[]).map(r => `<tr><td class="mono">${r.SO_Number}</td><td>${r.Lorry_No}</td><td>${r.GC_No||'–'}</td><td>${r.Eway_Bill_No||'–'}</td><td>${r.Final_MT}</td></tr>`).join('');
-  container.innerHTML = `<div class="table-wrap"><table><thead><tr><th>SO No</th><th>Lorry</th><th>GC No</th><th>E-Way Bill</th><th>Final MT</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="loading">No records</td></tr>'}</tbody></table></div>${renderPagination(page, Math.ceil(total/50), 'loadDispatchTable')}`;
+  container.innerHTML = `<div class="table-wrap"><table><thead><tr><th>SO No</th><th>Lorry</th><th>GC No</th><th>E-Way Bill</th><th>Items · PKGS</th><th>Final MT</th><th>Action</th></tr></thead><tbody>${rows||'<tr><td colspan="7" class="loading">No records</td></tr>'}</tbody></table></div>${renderPagination(page, Math.max(1,Math.ceil(total/25)), 'loadDispatchTable')}`;
 }
 
 // =============================================
@@ -3811,10 +3828,15 @@ async function loadProfitRecords(page) {
   wrap.innerHTML = '<div class="loading"><span class="spinner"></span></div>';
   try {
     const rows = await sb('profit_master','GET',null,'?order=created_at.desc&limit=25&offset='+((page-1)*25));
-    const countRes = await fetch(SUPABASE_URL + '/rest/v1/profit_master?select=count', {
-      headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON,'Prefer':'count=exact','Range':'0-0'}
-    });
-    const total = parseInt(countRes.headers.get('content-range')?.split('/')[1]||'0');
+    let total2 = 0;
+    try {
+      const cr2 = await fetch(SUPABASE_URL + '/rest/v1/profit_master', {
+        method: 'HEAD',
+        headers: {'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON,'Prefer':'count=exact'}
+      });
+      total2 = parseInt(cr2.headers.get('content-range')?.split('/')[1]||'0');
+    } catch(e) {}
+    const total = total2;
     const totalPages = Math.max(1, Math.ceil(total/25));
     if (!rows.length) { wrap.innerHTML = '<div class="loading" style="color:var(--ink3)">No profit records saved yet.</div>'; return; }
     const trows = rows.map(r => `<tr>
